@@ -317,8 +317,26 @@ class SerialAppClass(QMainWindow):
         # print(smart_text)
         if smart_text.startswith("[M]:"):
             self.motor_data_process(smart_text[4:])
+        else:
+            line = smart_text.strip()          # 去掉 \r\n 和首尾空格
+            if not line:
+                return
+            try:
+                speed_value = float(line)
+            except ValueError:
+                # 不是数字就忽略（比如乱码、提示信息）
+                return
+            self.ui.speed_ledit.setText(f"{speed_value:.2f}")
+            self.send_count += 1
+            if speed_value <= -10.0:
+                self.set_motor_status('reverse')
+            elif speed_value >= 10.0:
+                self.set_motor_status('forward')
+            else:
+                self.set_motor_status('stop')
+            self.update_speed_chart(speed_value, self.send_count)
 
-        # 更新接收数据大小
+    # 更新接收数据大小
         self.receive_data_size += len(data)
 
         if self.ui.hex_receive_chb.isChecked():
@@ -1022,26 +1040,6 @@ class SerialAppClass(QMainWindow):
                 self.ui.connect_btn.setText("已连接")
             elif int(part1_clean) == 2:
                 self.ui.connect_btn.setText("未连接")
-            else:
-                # 获取速度值
-                speed_value = float(part2_clean)
-                self.ui.speed_ledit.setText(f"{speed_value:.2f}")
-
-                # 发送数计数
-                self.send_count += 1
-
-                # 更新速度状态
-                if speed_value <= -10.0:
-                    self.set_motor_status('reverse')
-                elif speed_value >= 10.0:
-                    self.set_motor_status('forward')
-                else:
-                    self.set_motor_status('stop')
-
-                # 更新速度图表
-                self.update_speed_chart(speed_value, self.send_count)
-        else:
-            print(f"格式错误: 期待2个数字，得到{len(parts)}个")
 
     def init_speed_chart(self):
         """初始化速度图表 - 放在groupBox_6中"""
