@@ -61,5 +61,15 @@
 
 它成功地示范了如何将复杂的硬件通信逻辑（Model）从繁琐的界面交互（View）中剥离出来，并通过控制器（Controller）优雅地协调二者。这种架构不仅保证了当前版本的**高稳定性**和**高性能**，更赋予了项目无限的生命力——无论需求如何变更，这个坚实的骨架都能轻松应对。
 
+---
+
+## 相关文档
+
+- 📘 **[技术实现详解](./technical_implementation.md)** - 深入了解串口通信、测速系统、数据协议等核心技术实现
+- 📊 **[UML 图表说明](./README_diagrams.md)** - 查看完整的类图和序列图
+- 🎨 **PlantUML 图表** - 专业级架构可视化
+  - [简化版类图](./class_diagram_simple.puml) - 适合 PPT 展示
+  - [序列图集合](./seq_01_initialization.puml) - 7 个独立流程图
+
 ![项目序列](./assets/docs/sequence_diagram.svg)
 ![项目类](./assets/docs/PortMonitor_Class_Diagram_Full.svg)
