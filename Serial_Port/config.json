@@ -83,7 +83,7 @@
       "stopbits": "1位"
     },
     "send": {
-      "hex_send": true,
+      "hex_send": false,
       "send_sync": false
     },
     "receive": {
