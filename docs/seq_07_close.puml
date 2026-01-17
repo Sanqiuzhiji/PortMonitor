@@ -1,0 +1,80 @@
+@startuml 07_Close
+
+title 序列图 7/7: 关闭串口与退出流程
+
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 20
+skinparam BackgroundColor white
+skinparam FontName "Microsoft YaHei"
+skinparam defaultFontSize 13
+
+actor User as "用户"
+participant UI as "Ui_Serial_MainWindow"
+participant App as "SerialAppClass"
+participant Serial as "SerialProcess"
+participant Port as "QSerialPort"
+participant Config as "JSONConfigManager"
+
+== 关闭串口 ==
+
+User -> UI: 点击"关闭串口"
+activate UI
+UI -> App: open_btn.clicked
+deactivate UI
+
+activate App
+App -> App: toggle_serial_port()
+
+App -> Serial: close_port()
+activate Serial
+
+Serial -> Port: close()
+activate Port
+Port --> Serial: 
+deactivate Port
+
+Serial -> Serial: is_open = False
+Serial -[#FFA500]-> App: port_closed 信号
+deactivate Serial
+
+App -> UI: 更新按钮文本
+activate UI
+App -> UI: 状态栏显示"串口已关闭"
+UI --> User: 显示关闭提示
+deactivate UI
+
+deactivate App
+
+== 退出应用 ==
+
+User -> UI: 关闭窗口
+activate UI
+UI -> App: closeEvent()
+deactivate UI
+
+activate App
+App -> App: save_current_settings()
+note right: 最后一次保存配置
+
+App -> Serial: close_port()
+activate Serial
+Serial -> Port: close()
+activate Port
+Port --> Serial: 
+deactivate Port
+deactivate Serial
+
+App -> Config: save_config()
+activate Config
+Config -> Config: 写入 config.json
+Config --> App: 
+deactivate Config
+
+App --> UI: 允许关闭
+activate UI
+UI --> User: 应用退出
+deactivate UI
+
+deactivate App
+
+@enduml

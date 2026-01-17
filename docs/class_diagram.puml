@@ -1,0 +1,294 @@
+@startuml PortMonitor_Class_Diagram_Full
+
+' 完整详细版 - 包含所有方法
+' 适合文档查阅，不适合PPT展示
+
+' 样式设置
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam BackgroundColor white
+skinparam class {
+    BackgroundColor<<PyQt5>> #E8F5E9
+    BorderColor<<PyQt5>> #4CAF50
+    BackgroundColor<<External>> #FFF3E0
+    BorderColor<<External>> #FF9800
+    BackgroundColor #E3F2FD
+    BorderColor #2196F3
+    ArrowColor #455A64
+    FontName "Microsoft YaHei"
+}
+
+' PyQt5 基类
+class QObject <<PyQt5>> {
+    {abstract} +objectName(): str
+}
+
+class QMainWindow <<PyQt5>> {
+    {abstract} +centralWidget(): QWidget
+    {abstract} +statusBar(): QStatusBar
+}
+
+class QSerialPort <<PyQt5>> {
+    +portName(): str
+    +baudRate(): int
+    +open(mode): bool
+    +close(): void
+    +write(data): int
+    +readAll(): QByteArray
+    +isOpen(): bool
+    +flush(): void
+    +setRequestToSend(bool): void
+    +setDataTerminalReady(bool): void
+    --信号--
+    +readyRead()
+    +errorOccurred(error)
+}
+
+' ====== 核心类：SerialProcess ======
+class SerialProcess {
+    == 私有属性 ==
+    -serial: QSerialPort
+    -is_open: bool
+    -is_paused: bool
+    -receive_count: int
+    -send_count: int
+    -auto_send_timer: QTimer
+    -auto_send_interval: int
+    
+    == 信号 (PyQt Signal) ==
+    +data_received: pyqtSignal(QByteArray)
+    +port_opened: pyqtSignal()
+    +port_closed: pyqtSignal()
+    +error_occurred: pyqtSignal(str)
+    
+    == 公共方法 ==
+    +__init__()
+    +open_port(port_name, baud_rate, \n    data_bits, parity, \n    stop_bits, flow_control): bool
+    +close_port(): void
+    +read_data(): void
+    +send_data(data, data_hex, is_hex): bool
+    +send_file(file_path): bool
+    +set_flow_control(rts_state, dtr_state): void
+    +set_auto_send(enabled, interval): void
+    +auto_send_data(): void
+    +pause_receive(paused): void
+    +handle_error(error): void
+    +get_port_info(port_name): dict
+    +get_stats(): dict
+    +reset_stats(): void
+}
+
+' ====== UI类 ======
+class Ui_Serial_MainWindow {
+    == UI 控件 (自动生成) ==
+    +port_cb: QComboBox
+    +baudrate_cb: QComboBox
+    +parity_cb: QComboBox
+    +databits_cb: QComboBox
+    +stopbits_cb: QComboBox
+    +open_btn: QPushButton
+    +self_send_btn: QPushButton
+    +clear_send_btn: QPushButton
+    +auto_send_btn: QPushButton
+    +receive_tEdit: QTextEdit
+    +send_tEdit: QTextEdit
+    +send_hex_tEdit: QTextEdit
+    +hex_send_chb: QCheckBox
+    +hex_receive_chb: QCheckBox
+    +timestamp_chb: QCheckBox
+    +rts_chb: QCheckBox
+    +dtr_chb: QCheckBox
+    +speed_ledit: QLineEdit
+    +speed_ctrl_hsld: QSlider
+    +speed_ctrl_btn: QPushButton
+    +connect_btn: QPushButton
+    +file_receive_lEdit: QLineEdit
+    +file_send_lEdit: QLineEdit
+    +port_info_lEdit: QTextEdit
+    +statusbar: QStatusBar
+    
+    == 方法 ==
+    +setupUi(MainWindow): void
+    +retranslateUi(MainWindow): void
+}
+
+' ====== 配置管理类 ======
+class JSONConfigManager {
+    == 私有属性 ==
+    -config_file: str
+    -config: dict
+    
+    == 公共方法 ==
+    +__init__(config_file)
+    +load_or_create_config(): dict
+    +create_default_config(): dict
+    +save_config(config): void
+    +get_config_options(category): list
+    +add_custom_option(category, \n    value, text): bool
+    +save_user_settings(settings_dict): void
+    +load_user_settings(): dict
+    +save_all_settings(serial_app): void
+    +is_port_available(port_name): bool
+    +get_available_port(preferred_port): str
+}
+
+' ====== 主应用程序类 ======
+class SerialAppClass {
+    == 私有属性 ==
+    -window_manager: WindowManagerClass
+    -ui: Ui_Serial_MainWindow
+    -config_manager: JSONConfigManager
+    -serial_process: SerialProcess
+    -port_infor_timer: QTimer
+    -auto_clear_timer: QTimer
+    -auto_send_timer: QTimer
+    -receive_data_size: int
+    -max_size: int = 512KB
+    -is_auto_sending: bool
+    -actual_text: str
+    -actual_hex_text: str
+    -is_syncing: bool
+    -speed_history: deque(maxlen=200)
+    -send_count_history: deque(maxlen=200)
+    -send_count: int
+    -last_port_list: list
+    -design_size: tuple
+    
+    == 初始化方法 ==
+    +__init__(window_manager)
+    +init_serial_ui(): void
+    +setup_text_edits(): void
+    +setup_sync_function(): void
+    +connect_signals(): void
+    
+    == 串口操作 ==
+    +toggle_serial_port(): void
+    +open_serial_port(): void
+    +save_current_settings(): void
+    +auto_save_settings(): void
+    +get_databits_value(): QSerialPort.DataBits
+    +get_parity_value(): QSerialPort.Parity
+    +get_stopbits_value(): QSerialPort.StopBits
+    
+    == 数据收发 ==
+    +on_data_received(data): void
+    +append_to_receive(text): void
+    +send_data(): void
+    +send_file(): void
+    +clear_receive_data(): void
+    +clear_send_data(): void
+    +clear_send_hex_data(): void
+    
+    == UI 事件处理 ==
+    +toggle_pause_receive(): void
+    +save_receive_data(): void
+    +select_receive_path(): void
+    +select_send_file(): void
+    +on_hex_receive_changed(state): void
+    +on_hex_send_changed(state): void
+    +on_timestamp_changed(state): void
+    +on_flow_control_changed(state): void
+    
+    == 串口事件回调 ==
+    +on_port_opened(): void
+    +on_port_closed(): void
+    +on_serial_error(error_msg): void
+    
+    == 界面初始化 ==
+    +init_baudrate_comboBox(): void
+    +init_parity_comboBox(): void
+    +init_databits_comboBox(): void
+    +init_stopbits_comboBox(): void
+    +load_last_settings(): void
+    +update_port_info_display(index): void
+    +refresh_ports(): void
+    +get_port_info(port_name): dict
+    
+    == 自动功能 ==
+    +on_auto_clear_changed(state): void
+    +on_auto_send_changed(): void
+    +comprehensive_auto_clear(): void
+    +auto_send_function(): void
+    
+    == 同步功能 ==
+    +on_sync_mode_changed(checked): void
+    +on_text_edit_changed(): void
+    +on_hex_edit_changed(): void
+    +sync_text_to_hex(text_to_convert): void
+    +sync_hex_to_text(): void
+    +send_text_edit_focus_in(event): void
+    +send_text_edit_focus_out(event): void
+    +send_hex_text_edit_focus_in(event): void
+    +send_hex_text_edit_focus_out(event): void
+    
+    == 速度控制 ==
+    +speed_setting_changed(): void
+    +speed_ctrl_send(): void
+    +update_slider_range(): void
+    +motor_data_process(smart_text): void
+    +init_speed_chart(): void
+    +update_speed_chart(speed, count): void
+    +on_connect_clicked(): void
+    
+    == 生命周期 ==
+    +closeEvent(event): void
+}
+
+' ====== 外部类 ======
+class WindowManagerClass <<External>> {
+    +show_serial_window(): void
+    ...
+}
+
+' ====== 继承关系 ======
+QObject <|-- SerialProcess : 继承
+QMainWindow <|-- SerialAppClass : 继承
+
+' ====== 组合关系（强依赖，生命周期一致）======
+SerialProcess *-- QSerialPort : 拥有
+SerialAppClass *-- SerialProcess : 拥有
+SerialAppClass *-- Ui_Serial_MainWindow : 拥有
+SerialAppClass *-- JSONConfigManager : 拥有
+
+' ====== 聚合关系（弱依赖）======
+SerialAppClass o-- WindowManagerClass : 使用
+
+' ====== 依赖关系 ======
+SerialProcess ..> QSerialPort : 使用API
+JSONConfigManager ..> QSerialPortInfo : 查询端口
+
+' ====== 信号连接关系 ======
+SerialProcess -[#FF6B6B]-> SerialAppClass : <<signal>>\ndata_received\nport_opened\nport_closed\nerror_occurred
+
+' 注释
+note right of SerialProcess
+  <b>串口处理核心类</b>
+  ----
+  • 封装 QSerialPort 底层操作
+  • 通过信号与上层通信
+  • 管理接收/发送计数
+  • 处理串口错误
+end note
+
+note right of SerialAppClass
+  <b>主应用程序类</b>
+  ----
+  • 管理整个应用逻辑
+  • 连接 UI 和串口处理
+  • 实现自动发送/清空
+  • 处理数据格式转换
+  • 管理配置持久化
+end note
+
+note bottom of JSONConfigManager
+  <b>配置管理</b>
+  保存/加载用户设置到 config.json
+end note
+
+note top of Ui_Serial_MainWindow
+  <b>UI界面类</b>
+  由 Qt Designer 生成
+  包含所有界面控件
+end note
+
+@enduml

@@ -1,0 +1,70 @@
+@startuml 02_Open_Port
+
+title 序列图 2/7: 打开串口流程
+
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 20
+skinparam BackgroundColor white
+skinparam FontName "Microsoft YaHei"
+skinparam defaultFontSize 13
+
+actor User as "用户"
+participant UI as "Ui_Serial_MainWindow"
+participant App as "SerialAppClass"
+participant Serial as "SerialProcess"
+participant Port as "QSerialPort"
+
+User -> UI: 点击"打开串口"按钮
+activate UI
+UI -> App: open_btn.clicked
+deactivate UI
+
+activate App
+App -> App: toggle_serial_port()
+App -> App: open_serial_port()
+
+App -> App: 获取串口参数
+note right
+  • 端口名
+  • 波特率
+  • 数据位/校验位/停止位
+  • 流控制
+end note
+
+App -> Serial: open_port(参数...)
+activate Serial
+
+Serial -> Port: 设置串口参数
+activate Port
+Serial -> Port: open(ReadWrite)
+
+alt 打开成功
+    Port --> Serial: True
+    deactivate Port
+    
+    Serial -> Serial: is_open = True
+    Serial -[#00AA00]-> App: port_opened 信号
+    deactivate Serial
+    
+    App -> UI: 更新按钮文本
+    activate UI
+    App -> UI: 状态栏显示"串口已打开"
+    UI --> User: 显示成功提示
+    deactivate UI
+    
+else 打开失败
+    Port --> Serial: False
+    deactivate Port
+    
+    Serial -[#FF0000]-> App: error_occurred 信号
+    deactivate Serial
+    
+    App -> UI: 弹出错误对话框
+    activate UI
+    UI --> User: 显示错误信息
+    deactivate UI
+end
+
+deactivate App
+
+@enduml

@@ -1,0 +1,59 @@
+@startuml 03_Receive_Data
+
+title 序列图 3/7: 接收数据流程
+
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 20
+skinparam BackgroundColor white
+skinparam FontName "Microsoft YaHei"
+skinparam defaultFontSize 13
+
+participant Port as "QSerialPort"
+participant Serial as "SerialProcess"
+participant App as "SerialAppClass"
+participant UI as "Ui_Serial_MainWindow"
+actor User as "用户"
+
+Port -> Serial: readyRead 信号
+activate Serial
+note right: 串口有数据到达
+
+Serial -> Serial: read_data()
+Serial -> Port: readAll()
+activate Port
+Port --> Serial: QByteArray
+deactivate Port
+
+Serial -> Serial: receive_count += size
+Serial -[#0066FF]-> App: data_received 信号
+deactivate Serial
+
+activate App
+App -> App: on_data_received(data)
+
+alt 电机数据 "[M]:xxx"
+    App -> App: motor_data_process()
+    App -> App: update_speed_chart()
+    note right: 更新速度图表
+else 普通串口数据
+    alt 十六进制显示
+        App -> App: toHex().toUpper()
+        App -> App: 格式化为 "XX XX XX"
+    else 文本显示
+        App -> App: decode('utf-8')
+    end
+    
+    alt 启用时间戳
+        App -> App: 添加时间戳前缀
+    end
+    
+    App -> App: append_to_receive(text)
+    App -> UI: 插入文本到 receive_tEdit
+    activate UI
+    UI --> User: 显示接收的数据
+    deactivate UI
+end
+
+deactivate App
+
+@enduml

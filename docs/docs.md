@@ -61,3 +61,5 @@
 
 它成功地示范了如何将复杂的硬件通信逻辑（Model）从繁琐的界面交互（View）中剥离出来，并通过控制器（Controller）优雅地协调二者。这种架构不仅保证了当前版本的**高稳定性**和**高性能**，更赋予了项目无限的生命力——无论需求如何变更，这个坚实的骨架都能轻松应对。
 
+![项目序列](./assets/docs/sequence_diagram.svg)
+![项目类](./assets/docs/PortMonitor_Class_Diagram_Full.svg)

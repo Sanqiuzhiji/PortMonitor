@@ -1,0 +1,57 @@
+@startuml 01_Initialization
+
+title 序列图 1/7: 应用程序初始化流程
+
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 20
+skinparam BackgroundColor white
+skinparam FontName "Microsoft YaHei"
+skinparam defaultFontSize 13
+
+actor User as "用户"
+participant App as "SerialAppClass"
+participant UI as "Ui_Serial_MainWindow"
+participant Config as "JSONConfigManager"
+participant Serial as "SerialProcess"
+
+User -> App: 启动应用
+activate App
+
+App -> UI: setupUi()
+activate UI
+UI --> App: 创建UI控件
+deactivate UI
+
+App -> Config: load_or_create_config()
+activate Config
+Config -> Config: 读取 config.json
+Config --> App: 返回配置
+deactivate Config
+
+App -> Serial: 创建实例
+activate Serial
+Serial --> App: 
+deactivate Serial
+
+App -> App: connect_signals()
+note right
+  连接信号与槽：
+  • UI按钮事件
+  • 串口信号
+  • 定时器
+end note
+
+App -> App: refresh_ports()
+note right: 刷新可用串口列表
+
+App -> App: load_last_settings()
+note right: 加载上次保存的设置
+
+App -> UI: 更新界面
+activate UI
+UI --> User: 显示应用界面
+deactivate UI
+
+deactivate App
+
+@enduml
