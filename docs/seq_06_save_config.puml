@@ -1,0 +1,61 @@
+@startuml 06_Save_Config
+
+title 序列图 6/7: 配置保存流程
+
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 20
+skinparam BackgroundColor white
+skinparam FontName "Microsoft YaHei"
+skinparam defaultFontSize 13
+
+actor User as "用户"
+participant UI as "Ui_Serial_MainWindow"
+participant App as "SerialAppClass"
+participant Config as "JSONConfigManager"
+
+User -> UI: 修改设置
+note right
+  修改任意设置：
+  • 串口参数
+  • 复选框状态
+  • 文件路径等
+end note
+
+activate UI
+UI -> App: 控件信号\n(textChanged/stateChanged)
+deactivate UI
+
+activate App
+App -> App: auto_save_settings()
+App -> App: save_current_settings()
+
+App -> Config: save_all_settings(self)
+activate Config
+
+Config -> Config: 收集所有设置
+note right
+  • serial: 串口参数
+  • send: 发送选项
+  • receive: 接收选项
+  • flow_control: 流控制
+  • file_paths: 文件路径
+end note
+
+Config -> Config: save_user_settings(dict)
+Config -> Config: save_config()
+
+Config -> Config: 写入 config.json
+note right: JSON格式保存到磁盘
+
+Config --> App: 保存完成
+deactivate Config
+
+deactivate App
+
+note over UI, Config
+  <b>自动保存机制</b>
+  任何设置变更都会
+  自动触发保存流程
+end note
+
+@enduml

@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "PortMonitor"
+version = "0.1.0"
+description = "A Serial Port Monitor application based on PyQt5"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+authors = [
+  { name = "Sanqiuzhiji", email = "sanqiuzhiji@xx.x" },
+]
+classifiers = [
+    "Programming Language :: Python :: 3.12",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "PyQt5<=5.15.10",
+    "numpy",
+    "pyqtgraph",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/example/PortMonitor"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["Serial_Port*"]

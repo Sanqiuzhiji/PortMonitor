@@ -1,0 +1,71 @@
+@startuml 04_Send_Data
+
+title 序列图 4/7: 发送数据流程
+
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 20
+skinparam BackgroundColor white
+skinparam FontName "Microsoft YaHei"
+skinparam defaultFontSize 13
+
+actor User as "用户"
+participant UI as "Ui_Serial_MainWindow"
+participant App as "SerialAppClass"
+participant Serial as "SerialProcess"
+participant Port as "QSerialPort"
+
+User -> UI: 输入数据并点击"发送"
+activate UI
+UI -> App: self_send_btn.clicked
+deactivate UI
+
+activate App
+App -> App: send_data()
+
+alt 串口未打开
+    App -> UI: 显示错误提示
+    activate UI
+    UI --> User: "串口未打开"
+    deactivate UI
+else 串口已打开
+    alt 十六进制发送模式
+        App -> App: 获取 actual_hex_text
+        App -> App: 移除空格、换行
+        App -> App: bytes.fromhex()
+    else 文本发送模式
+        App -> App: 获取 actual_text
+        App -> App: encode('utf-8')
+    end
+    
+    App -> Serial: send_data(data, hex, is_hex)
+    activate Serial
+    
+    Serial -> Port: write(byte_data)
+    activate Port
+    Port --> Serial: bytes_written
+    deactivate Port
+    
+    alt 发送成功
+        Serial -> Serial: send_count += bytes
+        Serial -> Port: flush()
+        Serial --> App: True
+        deactivate Serial
+        
+        App -> UI: 更新发送统计
+        activate UI
+        UI --> User: 显示发送成功
+        deactivate UI
+    else 发送失败
+        Serial -[#FF0000]-> App: error_occurred
+        deactivate Serial
+        
+        App -> UI: 显示错误
+        activate UI
+        UI --> User: 显示失败信息
+        deactivate UI
+    end
+end
+
+deactivate App
+
+@enduml

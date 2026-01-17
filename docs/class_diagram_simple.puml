@@ -1,0 +1,100 @@
+@startuml PortMonitor_Class_Diagram_Simple
+
+' 简化版类图 - 适合PPT展示
+' 只显示核心类和关键方法
+
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam BackgroundColor white
+skinparam defaultFontSize 14
+skinparam class {
+    BackgroundColor<<PyQt5>> #E8F5E9
+    BorderColor<<PyQt5>> #4CAF50
+    BackgroundColor<<External>> #FFF3E0
+    BorderColor<<External>> #FF9800
+    BackgroundColor #E3F2FD
+    BorderColor #2196F3
+    ArrowColor #455A64
+    FontName "Microsoft YaHei"
+}
+
+' PyQt5 基类
+class QObject <<PyQt5>>
+class QMainWindow <<PyQt5>>
+class QSerialPort <<PyQt5>> {
+    +open()
+    +close()
+    +write()
+    +readAll()
+}
+
+' 核心类
+class SerialProcess {
+    -serial: QSerialPort
+    -is_open: bool
+    -receive_count: int
+    -send_count: int
+    ..信号..
+    +data_received
+    +port_opened
+    +port_closed
+    +error_occurred
+    ..关键方法..
+    +open_port(): bool
+    +close_port()
+    +send_data(): bool
+    +read_data()
+}
+
+class SerialAppClass {
+    -ui: Ui_Serial_MainWindow
+    -config_manager: JSONConfigManager
+    -serial_process: SerialProcess
+    ..核心方法..
+    +toggle_serial_port()
+    +on_data_received()
+    +send_data()
+    +auto_save_settings()
+}
+
+class JSONConfigManager {
+    -config: dict
+    ..核心方法..
+    +save_all_settings()
+    +load_user_settings()
+    +save_config()
+}
+
+class Ui_Serial_MainWindow {
+    +各种UI控件
+    ..方法..
+    +setupUi()
+}
+
+class WindowManagerClass <<External>> {
+    ...
+}
+
+' 关系
+QObject <|-- SerialProcess
+QMainWindow <|-- SerialAppClass
+
+SerialProcess *-- QSerialPort
+SerialAppClass *-- SerialProcess
+SerialAppClass *-- Ui_Serial_MainWindow
+SerialAppClass *-- JSONConfigManager
+SerialAppClass o-- WindowManagerClass
+
+SerialProcess -[#FF6B6B]-> SerialAppClass : <<信号>>
+
+note bottom of SerialProcess
+  <b>串口底层处理</b>
+  通过信号发送数据
+end note
+
+note bottom of SerialAppClass
+  <b>应用主逻辑</b>
+  连接UI和串口
+end note
+
+@enduml

@@ -1,0 +1,56 @@
+@startuml 05_Auto_Send
+
+title 序列图 5/7: 自动发送流程
+
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 20
+skinparam BackgroundColor white
+skinparam FontName "Microsoft YaHei"
+skinparam defaultFontSize 13
+
+actor User as "用户"
+participant UI as "Ui_Serial_MainWindow"
+participant App as "SerialAppClass"
+participant Timer as "QTimer"
+
+== 启动自动发送 ==
+
+User -> UI: 点击"启动自动发送"
+activate UI
+UI -> App: auto_send_btn.clicked
+deactivate UI
+
+activate App
+App -> App: on_auto_send_changed()
+App -> App: 读取发送间隔
+note right: 从 auto_sendTime_lEdit\n获取间隔时间(ms)
+
+App -> Timer: start(interval)
+activate Timer
+note right: 启动定时器
+
+loop 每隔指定时间
+    Timer -> App: timeout 信号
+    App -> App: auto_send_function()
+    App -> App: send_data()
+    note right: 复用发送数据流程
+end
+
+== 停止自动发送 ==
+
+User -> UI: 点击"停止自动发送"
+activate UI
+UI -> App: auto_send_btn.clicked
+deactivate UI
+
+App -> Timer: stop()
+deactivate Timer
+
+App -> UI: 更新按钮文本
+activate UI
+UI --> User: 显示"启动自动发送"
+deactivate UI
+
+deactivate App
+
+@enduml
